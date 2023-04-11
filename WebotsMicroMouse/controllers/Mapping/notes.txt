@@ -1,0 +1,16 @@
+use for straight Motion
+use time then corret
+
+check imu - pseudo pid for rotations
+encoders
+
+take d, v
+
+begin
+get encoder position
+
+
+while:
+set velocity,
+
+starting encoder value - check current encoder value
