@@ -324,23 +324,76 @@ def rotationInPlace(direction, degree):
                 break
 
         ROBOT_POSE.updatePose(MAZE)
+        
+# def circularMotion(vr=3, direction="left", R=10, angle=pi/2):
+#     omega = vr/(R+dmid)
+#     vl = omega*(R-dmid)
+#     v = (vr+vl)/2
+#     s = (angle) * R
+#     time = s/v
+#     s_time = robot.getTime()
 
-def circularMotion(vr=3, direction="left", R=10, angle=pi/2):
-    omega = vr/(R+dmid)
-    vl = omega*(R-dmid)
-    v = (vr+vl)/2
-    s = (angle) * R
-    time = s/v
-    s_time = robot.getTime()
+#     if direction == "right":
+#         setSpeedIPS(vr,vl)
+#     else:
+#         setSpeedIPS(vl,vr)
+#     while robot.step(timestep) != -1:
+#         if robot.getTime()-s_time > time:
+#             setSpeedIPS(0,0)
+#             break
+
+def circleR(R,V=4,direction='right',percent = 1):
+    # Determines direction and sets proper speeds
+    axel_length = distBtwWhe
+    wheel_radius = w_r
+    omega = V/abs(R)
+    if R < 0 :
+        sign = -1
+    else:
+        sign = 1
+
+    # Right and Clockwise
+    if direction == 'right' and sign > 0:
+        vl = omega*(abs(R) + sign*(axel_length/2))
+        vr = omega*(abs(R) - sign*(axel_length/2))
+        D = 2*math.pi*(abs(R) + sign*(axel_length/2))
+    # Right and Counter Clockwise
+    elif direction == 'right' and sign < 0:
+        vl = -omega*(abs(R) - sign*(axel_length/2))
+        vr = -omega*(abs(R) + sign*(axel_length/2))
+        D = 2*math.pi*(abs(R) - sign*(axel_length/2))
+    # Left and Clockwise
+    elif direction == 'left' and sign > 0:
+        vl = -omega*(abs(R) - sign*(axel_length/2))
+        vr = -omega*(abs(R) + sign*(axel_length/2))
+        D = 2*math.pi*(abs(R) - sign*(axel_length/2))
+    # Left and Counter Clockwise
+    elif direction == 'left' and sign < 0:
+        vl = omega*(abs(R) + sign*(axel_length/2))
+        vr = omega*(abs(R) - sign*(axel_length/2))
+        D = 2*math.pi*(abs(R) + sign*(axel_length/2))
+
+    D = D*percent
+    phi_l = vl/wheel_radius
+    phi_r = vr/wheel_radius
+
+    # Checks to see if speed is to high 
+    if abs(phi_l) > leftMotor.getMaxVelocity() or abs(phi_r) > rightMotor.getMaxVelocity():
+        print("Speed is too great for robot")
+        return
+
+    # Gets starting postion of left wheel encoder to use as a stoping condition
+    start_position = leftposition_sensor.getValue()
+    # Sets motor speeds and sets start time
+    leftMotor.setVelocity(phi_l)
+    rightMotor.setVelocity(phi_r)
+
     while robot.step(timestep) != -1:
-        if robot.getTime()-s_time > time:
-            setSpeedIPS(0,0)
-            break 
-        setSpeedIPS(0,0)
-        if direction == "right":
-            setSpeedIPS(vr,vl)
-        else:
-            setSpeedIPS(vl,vr)
+    # Checks if wheel distance is larger than D
+        if wheel_radius*abs(leftposition_sensor.getValue() - start_position) >= D-0.02:
+            leftMotor.setVelocity(0)
+            rightMotor.setVelocity(0)
+            break
 ########################## Motion logic ######################## 
 
 def rotateUntilAngle(angle):
@@ -463,6 +516,7 @@ def halfCircleHelper(a, b, c, d):
 
     if motion_theta == 0:
         # going right
+
         if a[0] > c[0]:
             # motion_theta = 90
             if c[1] > d[1] and c[0] == d[0]:
@@ -494,7 +548,7 @@ def halfCircleHelper(a, b, c, d):
                 motion_theta = 0
                 return "hr"
         else:
-            motion_theta = 270
+            # motion_theta = 270
             if c[1] < d[1] and c[0] == d[0]:
                 motion_theta = 0
                 return "hl"
@@ -517,36 +571,37 @@ def rotationHelper(a, b):
     global motion_theta
 
     if motion_theta == 0:
-        if a[0] > b[0]:
+
+        if b[0] > a[0]:
             motion_theta = 270
             return "ir"
-        elif a[0] < b[0]:
+        elif b[0] < a[0]:
             motion_theta = 90
             return "il"
         
     elif motion_theta == 90:
-        if a[1] > b[1]:
-            motion_theta = 180
-            return "il"
-        elif a[1] < b[1]:
+        if b[1] > a[1]:
             motion_theta = 0
             return "ir"
-        
+        elif b[1] < a[1]:
+            motion_theta =180 
+            return "il"
+
     elif motion_theta == 180:
-        if a[0] > b[0]:
+        if b[0] > a[0]:
             motion_theta = 270
             return "il"
-        elif a[0] < b[0]:
+        elif b[0] < a[0]:
             motion_theta = 90
             return "ir"
         
     elif motion_theta == 270:
-        if a[1] > b[1]:
-            motion_theta = 180
-            return "ir"
-        elif a[1] < b[1]:
+        if b[1] > a[1]:
             motion_theta = 0
             return "il"
+        elif b[1] < a[1]:
+            motion_theta =180 
+            return "ir"
         
     return False
 
@@ -560,8 +615,7 @@ def generateMotions(waypoints):
     motions = []
 
     for x in range(len(waypoints)):
-        prev_theta = copy.deepcopy(motion_theta)
-        # print(waypoints)
+        # print("--------------------------------------------------")
         length = len(waypoints) 
         if length <= 0:
             break
@@ -569,7 +623,7 @@ def generateMotions(waypoints):
             waypoints.pop(0)
 
         elif length == 2:
-            motions.append([prev_theta,motion_theta, "f"])
+            motions.append([motion_theta, "f"])
             waypoints.pop(0)
             waypoints.pop(0)
 
@@ -581,12 +635,12 @@ def generateMotions(waypoints):
             is_forward = forwardHelper(a, b, c)
             if is_forward:
                 waypoints.pop(0)
-                motions.append([prev_theta,motion_theta,"f"])
+                motions.append([motion_theta,"f"])
                 continue
 
             q_circle = quarterCircleHelper(a,b,c)
             if q_circle != False:
-                motions.append([prev_theta,motion_theta,q_circle])
+                motions.append([motion_theta,q_circle])
                 waypoints.pop(0)
                 waypoints.pop(0)
                 continue
@@ -599,16 +653,19 @@ def generateMotions(waypoints):
 
             is_forward = forwardHelper(a, b, c)
             if is_forward:
-                print(prev_theta,motion_theta,"f")
+                # print(f'points: {a}, {b}, {c}, {d}')
+                # print(f'cur: {motion_theta}, motion: f')
+
                 waypoints.pop(0)
-                motions.append([prev_theta,motion_theta,"f"])
+                motions.append([motion_theta,"f"])
                 continue
 
             h_circle = halfCircleHelper(a,b,c,d)
             if h_circle == "hl" or h_circle == "hr":
-                print(prev_theta,motion_theta,h_circle)
+                # print(f'points: {a}, {b}, {c}, {d}')
+                # print(f'prev: cur: {motion_theta}, motion: {h_circle}')
 
-                motions.append([prev_theta,motion_theta,h_circle])
+                motions.append([motion_theta,h_circle])
                 waypoints.pop(0)
                 waypoints.pop(0)
                 waypoints.pop(0)
@@ -616,48 +673,55 @@ def generateMotions(waypoints):
                 if len(waypoints) >= 2:
                     rotate = rotationHelper(waypoints[0], waypoints[1])
                     if rotate != False: 
-                        motions.append([motions[len(motions)-1][1],motion_theta,rotate])
-                        print(prev_theta,motion_theta,rotate)
+                        motions.append([motion_theta, rotate])
+                        # print(f'cur: {motion_theta}, motion: {rotate}')
                 continue
 
             q_circle = quarterCircleHelper(a,b,c)
-            if q_circle != False:
-                print(prev_theta,motion_theta,q_circle)
-                motions.append([prev_theta,motion_theta,q_circle])
+            if q_circle == "ql" or q_circle == "qr":
+                # print(f'points: {a}, {b}, {c}, {d}')
+                # print(f'cur: {motion_theta}, motion: {q_circle}')
+
+                motions.append([motion_theta,q_circle])
                 waypoints.pop(0)
                 waypoints.pop(0)
 
                 if len(waypoints) >= 2:
+                    # print(f'points: {waypoints[0]}, { waypoints[1]}')
                     rotate = rotationHelper(waypoints[0], waypoints[1])
                     if rotate != False: 
-                        motions.append([motions[len(motions)-1][1] ,motion_theta,rotate])
-                        print(prev_theta,motion_theta,rotate)
+                        motions.append([motion_theta, rotate])
+                        # print(f'cur: {motion_theta}, motion: {rotate}')
                 continue
-
+        
     return motions
 
 # f == forward 10, ql = quarter circle left, qr = quarter circle right
 # hl = half circle left, hr = half circle right
 # il, ir =  rotation in place left or right 
+
+# circularMotion(vr=3, direction="left", R=distance/2, angle=pi)
+# circularMotion(vr=3, direction="left", R=distance/2, angle=pi)
+# circularMotion(vr=3, direction="right", R=distance, angle=pi/2)
 def runMotions(motions):
     rotating_angle = 90
     distance = 7.08661
     for m in motions:
         print(m)
-        motion = m[2]
+        motion = m[1]
         if motion == "f":
             straightMotionD(distance)
         elif motion == "ql":
-            circularMotion(vr=4, direction="left", R=distance, angle=pi/2)
+            circleR(R=-distance, V=3, direction="left", percent=0.25)
         elif motion == "qr":
-            circularMotion(vr=4, direction="right", R=distance, angle=pi/2)
+            circleR(R=distance, V=3, direction="right", percent=0.25)
         elif motion == "hl":
             straightMotionD(distance/2)
-            circularMotion(vr=3, direction="left", R=distance/2, angle=pi)
+            circleR(R=-distance/2, V=3, direction="left", percent=0.5)
             straightMotionD(distance/2)
         elif motion == "hr":
             straightMotionD(distance/2)
-            circularMotion(vr=3, direction="right", R=distance/2, angle=pi)
+            circleR(R=distance/2, V=3, direction="right", percent=0.5)
             straightMotionD(distance/2)
         elif motion == "il":
             rotationInPlace('left', rotating_angle)
