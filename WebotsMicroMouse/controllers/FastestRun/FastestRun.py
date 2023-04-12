@@ -213,15 +213,15 @@ class RobotPose:
 
     #print the grid & robot pose
     def printRobotPose(self, maze):
-        print(f'x: {self.x:.2f}\ty: {self.y:.2f}\ttile: {self.tile}\ttheta: {self.theta:.2f}')
-        for list in maze.grid:
-            print("\t" + str(list))
-        print("-----------------------------------------------")
+        print(f'theta: {self.theta:.2f}')
+        # for list in maze.grid:
+        #     print("\t" + str(list))
+        # print("-----------------------------------------------")
 
     # Update pose of robot and grid, updates if a tile is found
     def updatePose(self, MAZE):
         global prev_l, prev_r
-        # self.printRobotPose(MAZE)
+        self.printRobotPose(MAZE)
         cur_l, cur_r = getPositionSensors()
         vl = (cur_l-prev_l)/0.032   # 32 ms 
         vr = (cur_r-prev_r)/0.032
@@ -275,9 +275,12 @@ def straightMotionD(D):
         # Checks if wheel distance is larger than D
         if w_r*abs(getPositionSensors()[0] - start_position) >= D-0.01:
             setSpeedIPS(0, 0)
+            ROBOT_POSE.updatePose(MAZE)
+            ROBOT_POSE.printRobotPose(MAZE)
             break
 
         ROBOT_POSE.updatePose(MAZE)
+        ROBOT_POSE.printRobotPose(MAZE)
 
 # assume angle is in radians
 def rotationInPlace(direction, degree):
@@ -321,26 +324,31 @@ def rotationInPlace(direction, degree):
                 setSpeedIPS(-.01, .01)
             else:
                 setSpeedIPS(0,0)
+                ROBOT_POSE.updatePose(MAZE)
+                ROBOT_POSE.printRobotPose(MAZE)
                 break
 
         ROBOT_POSE.updatePose(MAZE)
-        
-# def circularMotion(vr=3, direction="left", R=10, angle=pi/2):
-#     omega = vr/(R+dmid)
-#     vl = omega*(R-dmid)
-#     v = (vr+vl)/2
-#     s = (angle) * R
-#     time = s/v
-#     s_time = robot.getTime()
+        ROBOT_POSE.printRobotPose(MAZE)
 
-#     if direction == "right":
-#         setSpeedIPS(vr,vl)
-#     else:
-#         setSpeedIPS(vl,vr)
-#     while robot.step(timestep) != -1:
-#         if robot.getTime()-s_time > time:
-#             setSpeedIPS(0,0)
-#             break
+
+def circularMotion(vr=2, direction="left", R=10, angle=pi/2):
+    omega = vr/(R+dmid)
+    vl = omega*(R-dmid)
+    v = (vr+vl)/2
+    s = (angle) * R
+    time = s/v
+    s_time = robot.getTime()
+
+    if direction == "right":
+        setSpeedIPS(vr,vl)
+    else:
+        setSpeedIPS(vl,vr)
+
+    while robot.step(timestep) != -1:
+        if robot.getTime()-s_time > time:
+            setSpeedIPS(0,0)
+            break
 
 def circleR(R,V=4,direction='right',percent = 1):
     # Determines direction and sets proper speeds
@@ -681,7 +689,6 @@ def generateMotions(waypoints):
             if q_circle == "ql" or q_circle == "qr":
                 # print(f'points: {a}, {b}, {c}, {d}')
                 # print(f'cur: {motion_theta}, motion: {q_circle}')
-
                 motions.append([motion_theta,q_circle])
                 waypoints.pop(0)
                 waypoints.pop(0)
@@ -700,9 +707,33 @@ def generateMotions(waypoints):
 # hl = half circle left, hr = half circle right
 # il, ir =  rotation in place left or right 
 
-# circularMotion(vr=3, direction="left", R=distance/2, angle=pi)
-# circularMotion(vr=3, direction="left", R=distance/2, angle=pi)
-# circularMotion(vr=3, direction="right", R=distance, angle=pi/2)
+# def runMotions(motions):
+#     rotating_angle = 90
+#     distance = 7.08661
+#     for m in motions:
+#         print(m)
+#         motion = m[1]
+#         if motion == "f":
+#             straightMotionD(distance)
+#         elif motion == "ql":
+#             circularMotion(vr=3.5, direction="left", R=distance, angle=pi/2)
+#         elif motion == "qr":
+#             circularMotion(vr=3.5, direction="right", R=distance/2, angle=pi/2)
+#         elif motion == "hl":
+#             straightMotionD(distance/2)
+#             circularMotion(vr=3.5, direction="left", R=distance/2, angle=pi)
+#             straightMotionD(distance/2)
+#         elif motion == "hr":
+#             straightMotionD(distance/2)
+#             circularMotion(vr=3.5, direction="right", R=distance/2, angle=pi)
+#             straightMotionD(distance/2)
+#         elif motion == "il":
+#             rotationInPlace('left', rotating_angle)
+#         elif motion == "ir":
+#             rotationInPlace('right', rotating_angle)
+#         else:
+#             straightMotionD(0)
+
 def runMotions(motions):
     rotating_angle = 90
     distance = 7.08661
@@ -712,16 +743,16 @@ def runMotions(motions):
         if motion == "f":
             straightMotionD(distance)
         elif motion == "ql":
-            circleR(R=-distance, V=3, direction="left", percent=0.25)
+            circleR(R=-distance, V=1.5, direction="left", percent=0.25)
         elif motion == "qr":
-            circleR(R=distance, V=3, direction="right", percent=0.25)
+            circleR(R=distance, V=1.5, direction="right", percent=0.25)
         elif motion == "hl":
             straightMotionD(distance/2)
-            circleR(R=-distance/2, V=3, direction="left", percent=0.5)
+            circleR(R=-distance/2, V=1.5, direction="left", percent=0.5)
             straightMotionD(distance/2)
         elif motion == "hr":
             straightMotionD(distance/2)
-            circleR(R=distance/2, V=3, direction="right", percent=0.5)
+            circleR(R=distance/2, V=1.5, direction="right", percent=0.5)
             straightMotionD(distance/2)
         elif motion == "il":
             rotationInPlace('left', rotating_angle)
@@ -758,4 +789,3 @@ def pathPlanning(start_node, end_node):
 while robot.step(timestep) != -1:
     pathPlanning("15,0", "8,8")
     # pathPlanning("3,3", "1,1")
-    exit()

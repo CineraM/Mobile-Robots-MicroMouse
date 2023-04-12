@@ -325,7 +325,7 @@ def checkWalls(theta):
     lidar = getLidar()
     no_wall = []
     for lid in lidar:
-        if lid < 4:
+        if lid < 6:
             no_wall.append(False)
         else:
             no_wall.append(True)
@@ -402,11 +402,9 @@ def neighTiles(tile, theta=90):
     # print(".")
     # print(".")
 
-    for neigh in cur_node_neigh:
-        if neigh == "wall": continue
-        if neigh not in MAZE.graph:
-            MAZE.graph[neigh] = []
-
+    print(cur_node_neigh)
+    print(valid_walls)
+    print(getLidar())
     MAZE.graph[cur_node] = cur_node_neigh
     return valid_neigh
 
