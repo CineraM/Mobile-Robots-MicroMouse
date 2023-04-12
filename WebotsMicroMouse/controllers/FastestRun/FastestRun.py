@@ -178,13 +178,20 @@ class mazeMap:
         self.grid[i][j] = 1
 
     def bfs_queue_helper(self, paths, queue, nodes, cur_node):
+        # when exploring the maze, my algorithm will add nodes that can be visited by the robot, 
+        # however, it only adds them to the current node, thus
+        # nodes may have neighbors that are not in the graph
+        # do not traverse through those nodes
+        valid_nodes = [] 
         for node in nodes:
+            if node in self.graph: valid_nodes.append(node)
+            
+        for node in valid_nodes:
             if node != "wall": queue.append(node)
             if node not in paths:
-                # if node in self.graph:
-                    new_path = copy.deepcopy(paths[cur_node])
-                    new_path.append(node)
-                    paths[node] = new_path
+                new_path = copy.deepcopy(paths[cur_node])
+                new_path.append(node)
+                paths[node] = new_path
 
         return paths, queue 
 
@@ -741,26 +748,38 @@ def generateMotions(waypoints):
 def runMotions(motions):
     rotating_angle = 90
     distance = 7.08661
+    print("Running motions...")
     for m in motions:
         # print(m)
         motion = m[1]
         if motion == "f":
+            print("-  Forward 18cm")
             straightMotionD(distance)
         elif motion == "ql":
+            print("-  π/2 Left circular motion, R=18cm")
             circleR(R=-distance, V=1.5, direction="left", percent=0.25)
         elif motion == "qr":
+            print("-  π/2 Right circular motion, R=18cm")
             circleR(R=distance, V=1.5, direction="right", percent=0.25)
         elif motion == "hl":
+            print("-  Forward 9cm")
             straightMotionD(distance/2)
+            print("-  π Left circular motion, R=9cm")
             circleR(R=-distance/2, V=1.5, direction="left", percent=0.5)
+            print("-  Forward 9cm")
             straightMotionD(distance/2)
         elif motion == "hr":
+            print("-  Forward 9cm")
             straightMotionD(distance/2)
+            print("-  π Right circular motion, R=9cm")
             circleR(R=distance/2, V=1.5, direction="right", percent=0.5)
+            print("-  Forward 9cm")
             straightMotionD(distance/2)
         elif motion == "il":
+            print("-  π/2 Left Rotation-in-Place")
             rotationInPlace('left', rotating_angle)
         elif motion == "ir":
+            print("-  π/2 Right Rotation-in-Place")
             rotationInPlace('right', rotating_angle)
         else:
             straightMotionD(0)
@@ -773,7 +792,7 @@ def pathPlanning(start_node):
     global motion_theta
     goal_nodes = ["7,7", "8,8", "7,8", "8,7"]
     loadGraph()
-    
+    # print(MAZE.graph["12,0"])
     paths_to_goal = []
 
     for goal in goal_nodes:
@@ -786,19 +805,25 @@ def pathPlanning(start_node):
             min_len = len(paths_to_goal[i])
             min_idx = i
 
-    waypoints = paths_to_goal[min_idx]
+    if min == 999:
+        print("Goal can't be reached")
+        exit()
 
-    print(f'Start node: {start_node}\t End node: {waypoints[len(waypoints)-1]}')
-    print(f'BFS path: {waypoints}')
+    waypoints = paths_to_goal[min_idx]
+    # print(f'BFS path:\n\n{waypoints}\n\n\n')
+    print(f'Start node:\t\t{waypoints[0]}')
+    print(f'End node:\t\t{waypoints[len(waypoints)-1]}')
+    print(f'# of nodes:\t\t{len(waypoints)}')
+
+    
     motion_theta = firstTheta(waypoints[0], waypoints[1])
-    print(f'Rotating until {motion_theta} degrees...')
-    rotateUntilAngle(motion_theta)
+
     start_time = robot.getTime()
     motions = generateMotions(waypoints)
-    print(f'Motions to goal: {motions}')
-    print(len(motions))
+    
     runMotions(motions)
     print(f'Goal found in: {(robot.getTime()-start_time):.2f}s')
+
     print("sping :)")
     spin()
 

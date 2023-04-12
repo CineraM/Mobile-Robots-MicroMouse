@@ -530,7 +530,7 @@ def traverse():
         nodes_flag = True
 
     if robot.getTime() > 600: # 10 minutes
-        time_flag = False
+        time_flag = True
 
     if nodes_flag or time_flag: # all nodes found
         if time_flag:
