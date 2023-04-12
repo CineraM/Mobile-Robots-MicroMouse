@@ -143,14 +143,6 @@ class mazeMap:
         # # up, left, right, down
         possible_tiles = [cur_tile-n, cur_tile-1, cur_tile+1, cur_tile+n]
         
-        i = cur_tile//self.n
-        j = cur_tile%self.n
-        
-        if i == 0: possible_tiles.pop(possible_tiles.index(cur_tile-n))
-        if i == MAZE.n-1: possible_tiles.pop(possible_tiles.index(cur_tile+n))
-        if j == 0: possible_tiles.pop(possible_tiles.index(cur_tile-1))
-        if j == MAZE.n-1: possible_tiles.pop(possible_tiles.index(cur_tile+1))
-
         for i in possible_tiles:
             tl = self.tiles[i][0]
             br = self.tiles[i][3]
@@ -212,6 +204,7 @@ class RobotPose:
         print(f'x: {self.x:.2f}\ty: {self.y:.2f}\ttile: {self.tile}\ttheta: {self.theta:.2f}')
         for list in maze.grid:
             print("\t" + str(list))
+        print('.')
 
     # Update pose of robot and grid, updates if a tile is found
     def updatePose(self, MAZE):
@@ -242,11 +235,11 @@ class RobotPose:
             MAZE.updateGrid(tile-1)
 
 # initialize map and robot pose
-MAZE = mazeMap(n=16)
+MAZE = mazeMap(n=32)
 MAZE.generateTiles(top_left=56.6929, step=7.08661)
 MAZE.generateGrid()
 
-ROBOT_POSE = RobotPose(-53.1495, -53.1495, 241, 90)
+ROBOT_POSE = RobotPose(53.1495, -53.1495, 496, 90)
 MAZE.updateGrid(ROBOT_POSE.tile-1)
 
 ########################## Motion logic ######################## 
@@ -346,30 +339,6 @@ def checkWalls(theta):
     elif theta <= 360 and theta > 356 or theta < 4 and theta >= 0:
         return [no_wall[1], no_wall[3], no_wall[0], no_wall[2]]
 
-# returns [f, f, t, f]
-# where the true value is the closest node to goal
-def aStartNode(neigh, valid):
-    goals = [[7,7], [8, 8], [7,8], [8,7]]
-
-    min_idx = 0
-    min = 999
-    best_node = [False, False, False, False]
-    for i in range(len(neigh)):
-        # skip walls or discovered nodes
-        if valid[i] == False: continue
-
-        coma_indx = neigh[i].find(',')
-        node_i = int(neigh[i][:coma_indx])
-        node_j = int(neigh[i][coma_indx+1:])
-        for goal in goals:
-            dist_to_goal = math.dist(goal, [node_i, node_j])
-            if dist_to_goal < min:
-                min = dist_to_goal
-                min_idx = i
-
-    best_node[min_idx] = True
-    return best_node
-
 # forward, left, right, backward
 # check if there are walls
 def neighTiles(tile, theta=90):
@@ -428,17 +397,16 @@ def neighTiles(tile, theta=90):
             valid_neigh[i] = False
     #debug
     # print(valid_walls)
+    # print("-------------------------")
     # print(valid_neigh)
-    # print(cur_node_neigh)
-    # print(valid_walls)
-    # print(getLidar())
+    # print(".")
+    # print(".")
 
-    # return valid_neigh # dfs order, up, left, right, down
+    print(cur_node_neigh)
+    print(valid_walls)
+    print(getLidar())
     MAZE.graph[cur_node] = cur_node_neigh
-    if True not in valid_neigh:
-        return valid_neigh # if not valid neigh, backtrack
-    else:
-        return aStartNode(cur_node_neigh, valid_neigh)
+    return valid_neigh
 
 stack = []
 # helper, used to append for backtraking
@@ -508,48 +476,67 @@ def traversalRotationtHelper(theta, neighbors):
             stack.append(0)
             stack.append(0)
 
+def normalizeGraph(graph):
+    normalized = {}
+    min_i, min_j = 9999, 9999
+
+    for node in graph:
+        coma_indx = node.find(',')
+        i = int(node[:coma_indx])
+        j = int(node[coma_indx+1:])
+
+        if min_i > i: min_i = i
+        if min_j > j: min_j = j
+    
+    for node in graph:
+        new_neighbors = copy.deepcopy(graph[node])
+
+        for k in range(4):
+            if new_neighbors[k] == "wall": continue
+            coma_indx = new_neighbors[k].find(',')
+            i = int(new_neighbors[k][:coma_indx]) - min_i
+            j = int(new_neighbors[k][coma_indx+1:]) - min_j
+            new_neighbors[k] = str(i) + ',' + str(j)
+
+        coma_indx = node.find(',')
+        i = int(node[:coma_indx]) - min_i
+        j = int(node[coma_indx+1:]) - min_j
+
+        normalized[str(i) + ',' + str(j)] = new_neighbors
+
+    return normalized
+
 def spin():
     while robot.step(timestep) != -1:
         setSpeedIPS(-2, 2)
 
 # DFS traversal, uses a global stack to keep backtrack
 # the neighbors are found locally, and are not stored in a DS
-graph_file_path = os.getcwd()
-graph_file_path = os.path.dirname(graph_file_path) + "/graph.json" 
 target_visited_nodes = 256
 def traverse():
-    nodes_flag = False
-    time_flag = False
-
+    flag = False
     ones = sum([i.count(1) for i in MAZE.grid])
 
     if ones == target_visited_nodes: # all nodes already discovered
-        nodes_flag = True
+        flag = True
 
-    if len(stack) == 0 and ones>1: # all nodes are not discoverable
-        nodes_flag = True
-
-    if robot.getTime() > 600: # 10 minutes
-        time_flag = False
-
-    if nodes_flag or time_flag: # all nodes found
-        if time_flag:
-            print(f'Time Limit reached ({robot.getTime():.2f}s), saving graph')
-            print(f'Saving current Astar graph...')
-        else:
-            print(f'Astar completion time: {robot.getTime():.2f}s')
-
+    if flag: # all nodes found
+        print(f'DFS completion time: {robot.getTime():.2f}s')
         neighTiles(ROBOT_POSE.tile-1, ROBOT_POSE.theta)
         setSpeedIPS(-2, 2)
+
+        MAZE.graph = normalizeGraph(MAZE.graph)
         
-        # for i in range(16):
-        #     for j in range(16):
-        #         s = str(i) + ',' + str(j)
-        #         if s in MAZE.graph:
-        #             print(f'node: {s} , edges: {MAZE.graph[s]}')
+        for i in range(16):
+            for j in range(16):
+                s = str(i) + ',' + str(j)
+                if s in MAZE.graph:
+                    print(f'node: {s} , edges: {MAZE.graph[s]}')
         
-        print("Saving graph to: ", graph_file_path)
-        with open(graph_file_path, "w") as fp:
+        path = os.getcwd()
+        path = os.path.dirname(path) + "/graph.json" 
+        print("Saving graph to: ", path)
+        with open(path, "w") as fp:
             json.dump(MAZE.graph, fp)
 
         spin()
@@ -557,7 +544,6 @@ def traverse():
     n_tiles = neighTiles(ROBOT_POSE.tile-1, ROBOT_POSE.theta)
     theta = ROBOT_POSE.theta
     ROBOT_POSE.printRobotPose(MAZE)
-
     # BACK TRACK
     if True not in n_tiles: 
         top = stack.pop()
@@ -588,10 +574,6 @@ def traverse():
             traversalStrightHelper()
         else:
             traversalRotationtHelper(theta, n_tiles)
-    
-    # print("Saving current graph to: ", graph_file_path)
-    with open(graph_file_path, "w") as fp:
-        json.dump(MAZE.graph, fp)
 
 def rotateUntilAngle(angle):
     while robot.step(timestep) != -1:
@@ -612,13 +594,6 @@ def rotateUntilAngle(angle):
 
 print("Rotating until 90 degrees...")
 rotateUntilAngle(90)
-
-def mapping():
-    while robot.step(timestep) != -1:
-        traverse()
-
-def main():
-    mapping()
-
-if __name__ == "__main__":
-    main()
+while robot.step(timestep) != -1:
+    # continue
+    traverse()

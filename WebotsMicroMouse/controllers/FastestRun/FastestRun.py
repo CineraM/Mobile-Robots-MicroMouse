@@ -181,9 +181,10 @@ class mazeMap:
         for node in nodes:
             if node != "wall": queue.append(node)
             if node not in paths:
-                new_path = copy.deepcopy(paths[cur_node])
-                new_path.append(node)
-                paths[node] = new_path
+                # if node in self.graph:
+                    new_path = copy.deepcopy(paths[cur_node])
+                    new_path.append(node)
+                    paths[node] = new_path
 
         return paths, queue 
 
@@ -203,6 +204,8 @@ class mazeMap:
 
             if search_node == cur_node:
                 return paths[search_node]
+            
+        return False
 
 class RobotPose:
     def __init__(self, x, y, tile, theta):
@@ -213,6 +216,7 @@ class RobotPose:
 
     #print the grid & robot pose
     def printRobotPose(self, maze):
+        return
         print(f'theta: {self.theta:.2f}')
         # for list in maze.grid:
         #     print("\t" + str(list))
@@ -294,7 +298,7 @@ def rotationInPlace(direction, degree):
         sign = 1
         
     X_rad = math.radians(degree)
-    phi = sign*2
+    phi = sign*2 # defualt 2
 
     # Calculates time need for rotation
     omega = 2*abs(phi)*w_r / distBtwWhe
@@ -428,13 +432,13 @@ def loadGraph():
     with open(path, "r") as fp:
         MAZE.graph = json.load(fp)
     print("Graph successfully loaded!")
-    print("Graph contents: (Edges format: Up, Left, Right, Down)")
-    for i in range(4):
-        for j in range(4):
-            s = str(i) + ',' + str(j)
-            if s in MAZE.graph:
-                print(f'node: {s} , edges: {MAZE.graph[s]}')
-    print("--------------------------------------------------")
+    # print("Graph contents: (Edges format: Up, Left, Right, Down)")
+    # for i in range(16):
+    #     for j in range(16):
+    #         s = str(i) + ',' + str(j)
+    #         if s in MAZE.graph:
+    #             print(f'node: {s} , edges: {MAZE.graph[s]}')
+    # print("--------------------------------------------------")
 
 def bfsToList(bfs):
     new_list = []
@@ -738,7 +742,7 @@ def runMotions(motions):
     rotating_angle = 90
     distance = 7.08661
     for m in motions:
-        print(m)
+        # print(m)
         motion = m[1]
         if motion == "f":
             straightMotionD(distance)
@@ -765,27 +769,42 @@ def spin():
     while robot.step(timestep) != -1:
         setSpeedIPS(-2, 2)
 
-
-def pathPlanning(start_node, end_node):
+def pathPlanning(start_node):
     global motion_theta
+    goal_nodes = ["7,7", "8,8", "7,8", "8,7"]
     loadGraph()
-    waypoints = bfsToList(MAZE.bfs(start_node, end_node))
+    
+    paths_to_goal = []
 
-    print(f'Start node: {start_node}\t End node: {end_node}')
+    for goal in goal_nodes:
+        cur_path = bfsToList(MAZE.bfs(start_node, goal)) 
+        if cur_path != False: paths_to_goal.append(cur_path)
+
+    min_len, min_idx = 999, 999
+    for i in range(len(paths_to_goal)):
+        if len(paths_to_goal[i]) < min_len:
+            min_len = len(paths_to_goal[i])
+            min_idx = i
+
+    waypoints = paths_to_goal[min_idx]
+
+    print(f'Start node: {start_node}\t End node: {waypoints[len(waypoints)-1]}')
     print(f'BFS path: {waypoints}')
     motion_theta = firstTheta(waypoints[0], waypoints[1])
-    # print(motion_theta)
-    
     print(f'Rotating until {motion_theta} degrees...')
     rotateUntilAngle(motion_theta)
     start_time = robot.getTime()
     motions = generateMotions(waypoints)
+    print(f'Motions to goal: {motions}')
+    print(len(motions))
     runMotions(motions)
     print(f'Goal found in: {(robot.getTime()-start_time):.2f}s')
+    print("sping :)")
     spin()
+
 
 
 # main loop
 while robot.step(timestep) != -1:
-    pathPlanning("15,0", "8,8")
+    pathPlanning("15,0")
     # pathPlanning("3,3", "1,1")
