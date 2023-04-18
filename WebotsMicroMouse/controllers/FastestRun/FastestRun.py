@@ -152,18 +152,6 @@ class mazeMap:
                 if y < tl[1] and y > br[1]:
                     return i+1
         return -1
-    # the search space is extremly small, this will not affect performance 8x8
-    # exaustive search just in case 
-        # for i in range(len(self.tiles)):
-        #     tl = self.tiles[i][0]
-        #     br = self.tiles[i][3]
-        #     x, y = pose.x, pose.y
-
-        #     if x > tl[0] and x < br[0]:
-        #         if y < tl[1] and y > br[1]:
-        #             print(i)
-        #             return i+1
-        # return -1
     
     def generateGrid(self):
         for i in range(self.n):
@@ -535,14 +523,11 @@ def halfCircleHelper(a, b, c, d):
 
     if motion_theta == 0:
         # going right
-
         if a[0] > c[0]:
-            # motion_theta = 90
             if c[1] > d[1] and c[0] == d[0]:
                 motion_theta = 180
                 return "hl"
         else:
-            # motion_theta = 270
             if c[1] > d[1] and c[0] == d[0]:
                 motion_theta = 180
                 return "hr"
@@ -550,7 +535,6 @@ def halfCircleHelper(a, b, c, d):
     elif motion_theta == 90:
         # going up
         if a[1] > c[1]:
-            # motion_theta = 180
             if c[0] < d[0] and c[1] == d[1]:
                 motion_theta = 270
                 return "hl"
@@ -562,12 +546,10 @@ def halfCircleHelper(a, b, c, d):
     elif motion_theta == 180:
         # going left
         if a[0] > c[0]:
-            # motion_theta = 90
             if c[1] < d[1] and c[0] == d[0]:
                 motion_theta = 0
                 return "hr"
         else:
-            # motion_theta = 270
             if c[1] < d[1] and c[0] == d[0]:
                 motion_theta = 0
                 return "hl"
@@ -634,7 +616,6 @@ def generateMotions(waypoints):
     motions = []
 
     for x in range(len(waypoints)):
-        # print("--------------------------------------------------")
         length = len(waypoints) 
         if length <= 0:
             break
@@ -672,18 +653,12 @@ def generateMotions(waypoints):
 
             is_forward = forwardHelper(a, b, c)
             if is_forward:
-                # print(f'points: {a}, {b}, {c}, {d}')
-                # print(f'cur: {motion_theta}, motion: f')
-
                 waypoints.pop(0)
                 motions.append([motion_theta,"f"])
                 continue
 
             h_circle = halfCircleHelper(a,b,c,d)
             if h_circle == "hl" or h_circle == "hr":
-                # print(f'points: {a}, {b}, {c}, {d}')
-                # print(f'prev: cur: {motion_theta}, motion: {h_circle}')
-
                 motions.append([motion_theta,h_circle])
                 waypoints.pop(0)
                 waypoints.pop(0)
@@ -693,86 +668,51 @@ def generateMotions(waypoints):
                     rotate = rotationHelper(waypoints[0], waypoints[1])
                     if rotate != False: 
                         motions.append([motion_theta, rotate])
-                        # print(f'cur: {motion_theta}, motion: {rotate}')
                 continue
 
             q_circle = quarterCircleHelper(a,b,c)
             if q_circle == "ql" or q_circle == "qr":
-                # print(f'points: {a}, {b}, {c}, {d}')
-                # print(f'cur: {motion_theta}, motion: {q_circle}')
                 motions.append([motion_theta,q_circle])
                 waypoints.pop(0)
                 waypoints.pop(0)
 
                 if len(waypoints) >= 2:
-                    # print(f'points: {waypoints[0]}, { waypoints[1]}')
                     rotate = rotationHelper(waypoints[0], waypoints[1])
                     if rotate != False: 
                         motions.append([motion_theta, rotate])
-                        # print(f'cur: {motion_theta}, motion: {rotate}')
                 continue
         
     return motions
-
-# f == forward 10, ql = quarter circle left, qr = quarter circle right
-# hl = half circle left, hr = half circle right
-# il, ir =  rotation in place left or right 
-
-# def runMotions(motions):
-#     rotating_angle = 90
-#     distance = 7.08661
-#     for m in motions:
-#         print(m)
-#         motion = m[1]
-#         if motion == "f":
-#             straightMotionD(distance)
-#         elif motion == "ql":
-#             circularMotion(vr=3.5, direction="left", R=distance, angle=pi/2)
-#         elif motion == "qr":
-#             circularMotion(vr=3.5, direction="right", R=distance/2, angle=pi/2)
-#         elif motion == "hl":
-#             straightMotionD(distance/2)
-#             circularMotion(vr=3.5, direction="left", R=distance/2, angle=pi)
-#             straightMotionD(distance/2)
-#         elif motion == "hr":
-#             straightMotionD(distance/2)
-#             circularMotion(vr=3.5, direction="right", R=distance/2, angle=pi)
-#             straightMotionD(distance/2)
-#         elif motion == "il":
-#             rotationInPlace('left', rotating_angle)
-#         elif motion == "ir":
-#             rotationInPlace('right', rotating_angle)
-#         else:
-#             straightMotionD(0)
 
 def runMotions(motions):
     rotating_angle = 90
     distance = 7.08661
     print("Running motions...")
+    circleV = 2.5 # 1.5 == DEFAULT
+    # 2.2, 2.5 may work buy it is very unprecise
     for m in motions:
-        # print(m)
         motion = m[1]
         if motion == "f":
             print("-  Forward 18cm")
             straightMotionD(distance)
         elif motion == "ql":
             print("-  π/2 Left circular motion, R=18cm")
-            circleR(R=-distance, V=1.5, direction="left", percent=0.25)
+            circleR(R=-distance, V=circleV, direction="left", percent=0.25)
         elif motion == "qr":
             print("-  π/2 Right circular motion, R=18cm")
-            circleR(R=distance, V=1.5, direction="right", percent=0.25)
+            circleR(R=distance, V=circleV, direction="right", percent=0.25)
         elif motion == "hl":
             print("-  Forward 9cm")
             straightMotionD(distance/2)
             print("-  π Left circular motion, R=9cm")
-            circleR(R=-distance/2, V=1.5, direction="left", percent=0.5)
+            circleR(R=-distance/2, V=circleV, direction="left", percent=0.5)
             print("-  Forward 9cm")
             straightMotionD(distance/2)
         elif motion == "hr":
             print("-  Forward 9cm")
             straightMotionD(distance/2)
             print("-  π Right circular motion, R=9cm")
-            circleR(R=distance/2, V=1.5, direction="right", percent=0.5)
+            circleR(R=distance/2, V=circleV, direction="right", percent=0.5)
             print("-  Forward 9cm")
             straightMotionD(distance/2)
         elif motion == "il":
@@ -792,7 +732,6 @@ def pathPlanning(start_node):
     global motion_theta
     goal_nodes = ["7,7", "8,8", "7,8", "8,7"]
     loadGraph()
-    # print(MAZE.graph["12,0"])
     paths_to_goal = []
 
     for goal in goal_nodes:
@@ -810,12 +749,10 @@ def pathPlanning(start_node):
         exit()
 
     waypoints = paths_to_goal[min_idx]
-    # print(f'BFS path:\n\n{waypoints}\n\n\n')
     print(f'Start node:\t\t{waypoints[0]}')
     print(f'End node:\t\t{waypoints[len(waypoints)-1]}')
     print(f'# of nodes:\t\t{len(waypoints)}')
 
-    
     motion_theta = firstTheta(waypoints[0], waypoints[1])
 
     start_time = robot.getTime()
@@ -827,9 +764,6 @@ def pathPlanning(start_node):
     print("sping :)")
     spin()
 
-
-
 # main loop
 while robot.step(timestep) != -1:
-    pathPlanning("15,0")
-    # pathPlanning("3,3", "1,1")
+    pathPlanning("15,0") # only pass the starting position
