@@ -74,6 +74,14 @@ def getLidar():
     
     return ret
 
+def getDistSensors():
+    ret = []
+    ret.append(frontDistanceSensor.getValue()*toIn)
+    ret.append(leftDistanceSensor.getValue()*toIn)
+    ret.append(rightDistanceSensor.getValue()*toIn)
+    ret.append(rearDistanceSensor.getValue()*toIn)
+    return ret
+
 # set speed to both motors, input in Inches
 def setSpeedIPS(vl, vr):
     vl /= w_r
@@ -329,9 +337,13 @@ def rotationInPlace(direction, degree, v):
 # basically returns the valid edges in a graph
 def checkWalls(theta):
     # front, left, right, back
-    lidar = getLidar()
+    # if robot is too close to a wall lidar is very inaccurate
+    # it may return an infinite value, which breaks the traverse algorithm
+    lidar = getLidar() 
+    dist_sensors = getDistSensors()
+
     no_wall = []
-    for lid in lidar:
+    for lid in dist_sensors:
         if lid < 6:
             no_wall.append(False)
         else:
@@ -422,6 +434,7 @@ def neighTiles(tile, theta=90):
 
     
     valid_walls = checkWalls(theta)
+    print(valid_walls)
     for i in range(len(valid_walls)):
         if valid_walls[i] == False:
             cur_node_neigh[i] = "wall"
