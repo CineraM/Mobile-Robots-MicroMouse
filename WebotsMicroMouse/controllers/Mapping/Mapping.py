@@ -434,7 +434,7 @@ def neighTiles(tile, theta=90):
 
     
     valid_walls = checkWalls(theta)
-    print(valid_walls)
+    # print(valid_walls)
     for i in range(len(valid_walls)):
         if valid_walls[i] == False:
             cur_node_neigh[i] = "wall"
@@ -530,9 +530,11 @@ def spin():
 graph_file_path = os.getcwd()
 graph_file_path = os.path.dirname(graph_file_path) + "/graph.json" 
 target_visited_nodes = 256
+goal_tiles = [120, 121, 136, 137]
 def traverse():
     nodes_flag = False
     time_flag = False
+    goal_found = False
 
     ones = sum([i.count(1) for i in MAZE.grid])
 
@@ -545,21 +547,22 @@ def traverse():
     if robot.getTime() > 600: # 10 minutes
         time_flag = True
 
-    if nodes_flag or time_flag: # all nodes found
+    if ROBOT_POSE.tile in goal_tiles:
+        goal_found = True
+
+    if nodes_flag or time_flag or goal_found: # all nodes found
         if time_flag:
             print(f'Time Limit reached ({robot.getTime():.2f}s), saving graph')
             print(f'Saving current Astar graph...')
-        else:
+        elif nodes_flag:
+            print("World completely mapped")
             print(f'Astar completion time: {robot.getTime():.2f}s')
+        elif goal_found:
+            print(f'Goal found in: {robot.getTime():.2f}s')
 
         neighTiles(ROBOT_POSE.tile-1, ROBOT_POSE.theta)
         setSpeedIPS(-2, 2)
         
-        # for i in range(16):
-        #     for j in range(16):
-        #         s = str(i) + ',' + str(j)
-        #         if s in MAZE.graph:
-        #             print(f'node: {s} , edges: {MAZE.graph[s]}')
         
         print("Saving graph to: ", graph_file_path)
         with open(graph_file_path, "w") as fp:

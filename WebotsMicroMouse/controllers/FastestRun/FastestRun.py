@@ -330,24 +330,72 @@ def rotationInPlace(direction, degree):
         ROBOT_POSE.updatePose(MAZE)
         ROBOT_POSE.printRobotPose(MAZE)
 
+    theta = imuCleaner(imu.getRollPitchYaw()[2])
+    
+    if theta < 94 and theta > 86:
+        if theta > 90:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 90: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(.01, -.01)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 90: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-.01, .01)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
 
-def circularMotion(vr=2, direction="left", R=10, angle=pi/2):
-    omega = vr/(R+dmid)
-    vl = omega*(R-dmid)
-    v = (vr+vl)/2
-    s = (angle) * R
-    time = s/v
-    s_time = robot.getTime()
+    elif theta < 184 and theta > 176:
+        if theta > 180:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 180: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(.01, -.01)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 180: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-.01, .01)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
 
-    if direction == "right":
-        setSpeedIPS(vr,vl)
-    else:
-        setSpeedIPS(vl,vr)
+    elif theta <= 360 and theta > 356 or theta < 4 and theta >= 0:
+        if theta > 90:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 360: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(.01, -.01)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 0: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-.01, .01)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
 
-    while robot.step(timestep) != -1:
-        if robot.getTime()-s_time > time:
-            setSpeedIPS(0,0)
-            break
+    elif theta < 274 and theta > 266:
+        if theta > 270:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 270: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(.01, -.01)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 270: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-.01, .01)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        
 
 def circleR(R,V=4,direction='right',percent = 1):
     # Determines direction and sets proper speeds
@@ -397,10 +445,35 @@ def circleR(R,V=4,direction='right',percent = 1):
 
     while robot.step(timestep) != -1:
     # Checks if wheel distance is larger than D
-        if wheel_radius*abs(leftposition_sensor.getValue() - start_position) >= D-0.02:
+        if wheel_radius*abs(leftposition_sensor.getValue() - start_position) >= D-0.02: #0.02
             leftMotor.setVelocity(0)
             rightMotor.setVelocity(0)
             break
+
+# def circleR(R=10, V=2, direction="left", percent=0.5):
+#     vr = V
+#     angle = 0
+#     R = abs(R)
+#     if percent == 0.5: angle = pi
+#     if percent == 0.25: angle = pi/2
+
+#     omega = vr/(R+dmid)
+#     vl = omega*(R-dmid)
+#     v = (vr+vl)/2
+#     s = (angle) * R
+#     time = s/v
+#     s_time = robot.getTime()
+
+#     if direction == "right":
+#         setSpeedIPS(vr,vl)
+#     else:
+#         setSpeedIPS(vl,vr)
+
+#     while robot.step(timestep) != -1:
+#         if robot.getTime()-s_time > time:
+#             setSpeedIPS(0,0)
+#             break
+
 ########################## Motion logic ######################## 
 
 def rotateUntilAngle(angle):
@@ -427,13 +500,6 @@ def loadGraph():
     with open(path, "r") as fp:
         MAZE.graph = json.load(fp)
     print("Graph successfully loaded!")
-    # print("Graph contents: (Edges format: Up, Left, Right, Down)")
-    # for i in range(16):
-    #     for j in range(16):
-    #         s = str(i) + ',' + str(j)
-    #         if s in MAZE.graph:
-    #             print(f'node: {s} , edges: {MAZE.graph[s]}')
-    # print("--------------------------------------------------")
 
 def bfsToList(bfs):
     new_list = []
@@ -475,7 +541,7 @@ def forwardHelper(a, b, c):
             return True
     return False
 
-# i, j
+# a&b are tuples = [i, j]
 def quarterCircleHelper(a, b, c):
     global motion_theta
         
@@ -688,8 +754,8 @@ def runMotions(motions):
     rotating_angle = 90
     distance = 7.08661
     print("Running motions...")
-    circleV = 2.2 # 1.5 == DEFAULT
-    # 2.2, 2.5 may work buy it is very unprecise
+    circleV = 3.0 # 2.2 == DEFAULT
+    # 2.2, 2.5, 2.0 may work buy it is very unprecise
     for m in motions:
         motion = m[1]
         if motion == "f":
@@ -735,8 +801,11 @@ def pathPlanning(start_node):
     paths_to_goal = []
 
     for goal in goal_nodes:
-        cur_path = bfsToList(MAZE.bfs(start_node, goal)) 
-        if cur_path != False: paths_to_goal.append(cur_path)
+        try:
+            cur_path = bfsToList(MAZE.bfs(start_node, goal)) 
+            if cur_path != False: paths_to_goal.append(cur_path)
+        except:
+            pass
 
     min_len, min_idx = 999, 999
     for i in range(len(paths_to_goal)):
