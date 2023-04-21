@@ -754,8 +754,9 @@ def runMotions(motions):
     rotating_angle = 90
     distance = 7.08661
     print("Running motions...")
-    circleV = 3.0 # 2.2 == DEFAULT
-    # 2.2, 2.5, 2.0 may work buy it is very unprecise
+
+    circleV = 2.0 # 2.2 == DEFAULT
+    # 2.2, 2.5, 3.0, 2.0
     for m in motions:
         motion = m[1]
         if motion == "f":
