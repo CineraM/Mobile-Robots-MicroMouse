@@ -281,6 +281,76 @@ def straightMotionD(D):
         ROBOT_POSE.updatePose(MAZE)
         ROBOT_POSE.printRobotPose(MAZE)
 
+# playing with fire!
+def rotationErrorHelper():
+    marg_error = 0.01 
+    theta = imuCleaner(imu.getRollPitchYaw()[2])
+    speed = 0.02 # default 0.01
+    
+    if theta < 94 and theta > 86:
+        if theta > 90:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 90: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(speed, -speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 90: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-speed, speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+
+    elif theta < 184 and theta > 176:
+        if theta > 180:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 180: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(speed, -speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 180: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-speed, speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+
+    elif theta <= 360 and theta > 356 or theta < 4 and theta >= 0:
+        if theta > 90:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 360: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(speed, -speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 0: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-speed, speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+
+    elif theta < 274 and theta > 266:
+        if theta > 270:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 270: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(speed, -speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 270: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-speed, speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+
 # assume angle is in radians
 def rotationInPlace(direction, degree):
     # Determines Rotation and sets proper speeds
@@ -309,19 +379,18 @@ def rotationInPlace(direction, degree):
     end_heading = round((starting_theta - degree)%360,2)
 
     marg_error = .01
-
     while robot.step(timestep) != -1:
         current_heading = imuCleaner(imu.getRollPitchYaw()[2])
         east_flag = True if end_heading <= 4 or end_heading >= 356 else False
         if (robot.getTime() - t_start) >= T:
 
-            if east_flag:
-                current_heading = current_heading - 360 if current_heading > 355 else current_heading
-            if current_heading > (end_heading+marg_error):
-                setSpeedIPS(.01, -.01)
-            elif current_heading < (end_heading-marg_error):
-                setSpeedIPS(-.01, .01)
-            else:
+            # if east_flag:
+            #     current_heading = current_heading - 360 if current_heading > 355 else current_heading
+            # if current_heading > (end_heading+marg_error):
+            #     setSpeedIPS(.01, -.01)
+            # elif current_heading < (end_heading-marg_error):
+            #     setSpeedIPS(-.01, .01)
+            # else:
                 setSpeedIPS(0,0)
                 ROBOT_POSE.updatePose(MAZE)
                 ROBOT_POSE.printRobotPose(MAZE)
@@ -330,73 +399,8 @@ def rotationInPlace(direction, degree):
         ROBOT_POSE.updatePose(MAZE)
         ROBOT_POSE.printRobotPose(MAZE)
 
-    theta = imuCleaner(imu.getRollPitchYaw()[2])
-    
-    if theta < 94 and theta > 86:
-        if theta > 90:
-            while robot.step(timestep) != -1:
-                if theta-marg_error < 90: 
-                    setSpeedIPS(0,0)
-                    break
-                setSpeedIPS(.01, -.01)
-                theta = imuCleaner(imu.getRollPitchYaw()[2])
-        else:
-            while robot.step(timestep) != -1:
-                if theta+marg_error > 90: 
-                    setSpeedIPS(0,0)
-                    break
-                setSpeedIPS(-.01, .01)
-                theta = imuCleaner(imu.getRollPitchYaw()[2])
-
-    elif theta < 184 and theta > 176:
-        if theta > 180:
-            while robot.step(timestep) != -1:
-                if theta-marg_error < 180: 
-                    setSpeedIPS(0,0)
-                    break
-                setSpeedIPS(.01, -.01)
-                theta = imuCleaner(imu.getRollPitchYaw()[2])
-        else:
-            while robot.step(timestep) != -1:
-                if theta+marg_error > 180: 
-                    setSpeedIPS(0,0)
-                    break
-                setSpeedIPS(-.01, .01)
-                theta = imuCleaner(imu.getRollPitchYaw()[2])
-
-    elif theta <= 360 and theta > 356 or theta < 4 and theta >= 0:
-        if theta > 90:
-            while robot.step(timestep) != -1:
-                if theta-marg_error < 360: 
-                    setSpeedIPS(0,0)
-                    break
-                setSpeedIPS(.01, -.01)
-                theta = imuCleaner(imu.getRollPitchYaw()[2])
-        else:
-            while robot.step(timestep) != -1:
-                if theta+marg_error > 0: 
-                    setSpeedIPS(0,0)
-                    break
-                setSpeedIPS(-.01, .01)
-                theta = imuCleaner(imu.getRollPitchYaw()[2])
-
-    elif theta < 274 and theta > 266:
-        if theta > 270:
-            while robot.step(timestep) != -1:
-                if theta-marg_error < 270: 
-                    setSpeedIPS(0,0)
-                    break
-                setSpeedIPS(.01, -.01)
-                theta = imuCleaner(imu.getRollPitchYaw()[2])
-        else:
-            while robot.step(timestep) != -1:
-                if theta+marg_error > 270: 
-                    setSpeedIPS(0,0)
-                    break
-                setSpeedIPS(-.01, .01)
-                theta = imuCleaner(imu.getRollPitchYaw()[2])
+    rotationErrorHelper()
         
-
 def circleR(R,V=4,direction='right',percent = 1):
     # Determines direction and sets proper speeds
     axel_length = distBtwWhe
@@ -450,29 +454,7 @@ def circleR(R,V=4,direction='right',percent = 1):
             rightMotor.setVelocity(0)
             break
 
-# def circleR(R=10, V=2, direction="left", percent=0.5):
-#     vr = V
-#     angle = 0
-#     R = abs(R)
-#     if percent == 0.5: angle = pi
-#     if percent == 0.25: angle = pi/2
-
-#     omega = vr/(R+dmid)
-#     vl = omega*(R-dmid)
-#     v = (vr+vl)/2
-#     s = (angle) * R
-#     time = s/v
-#     s_time = robot.getTime()
-
-#     if direction == "right":
-#         setSpeedIPS(vr,vl)
-#     else:
-#         setSpeedIPS(vl,vr)
-
-#     while robot.step(timestep) != -1:
-#         if robot.getTime()-s_time > time:
-#             setSpeedIPS(0,0)
-#             break
+    # rotationErrorHelper()
 
 ########################## Motion logic ######################## 
 
@@ -755,8 +737,8 @@ def runMotions(motions):
     distance = 7.08661
     print("Running motions...")
 
-    circleV = 2.0 # 2.2 == DEFAULT
-    # 2.2, 2.5, 3.0, 2.0
+    circleV = 2.5 # 2.2 == DEFAULT
+    # 2.2, 2.5, 2.0, 3.0 --> if there are many curves
     for m in motions:
         motion = m[1]
         if motion == "f":

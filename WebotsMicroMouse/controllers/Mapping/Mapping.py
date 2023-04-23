@@ -282,6 +282,75 @@ def straightMotionD(D):
 
         ROBOT_POSE.updatePose(MAZE)
 
+def rotationErrorHelper():
+    marg_error = .01
+    theta = imuCleaner(imu.getRollPitchYaw()[2])
+    speed = 0.01 ## default 0.01
+    
+    if theta < 94 and theta > 86:
+        if theta > 90:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 90: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(speed, -speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 90: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-speed, speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+
+    elif theta < 184 and theta > 176:
+        if theta > 180:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 180: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(speed, -speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 180: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-speed, speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+
+    elif theta <= 360 and theta > 356 or theta < 4 and theta >= 0:
+        if theta > 90:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 360: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(speed, -speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 0: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-speed, speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+
+    elif theta < 274 and theta > 266:
+        if theta > 270:
+            while robot.step(timestep) != -1:
+                if theta-marg_error < 270: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(speed, -speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+        else:
+            while robot.step(timestep) != -1:
+                if theta+marg_error > 270: 
+                    setSpeedIPS(0,0)
+                    break
+                setSpeedIPS(-speed, speed)
+                theta = imuCleaner(imu.getRollPitchYaw()[2])
+
 # assume angle in radians
 def rotationInPlace(direction, degree, v):
     # Determines Rotation and sets proper speeds
@@ -316,17 +385,18 @@ def rotationInPlace(direction, degree, v):
         east_flag = True if end_heading <= 4 or end_heading >= 356 else False
         if (robot.getTime() - t_start) >= T:
 
-            if east_flag:
-                current_heading = current_heading - 360 if current_heading > 355 else current_heading
-            if current_heading > (end_heading+marg_error):
-                setSpeedIPS(.01, -.01)
-            elif current_heading < (end_heading-marg_error):
-                setSpeedIPS(-.01, .01)
-            else:
+            # if east_flag:
+            #     current_heading = current_heading - 360 if current_heading > 355 else current_heading
+            # if current_heading > (end_heading+marg_error):
+            #     setSpeedIPS(.01, -.01)
+            # elif current_heading < (end_heading-marg_error):
+            #     setSpeedIPS(-.01, .01)
+            # else:
                 setSpeedIPS(0,0)
                 break
 
         ROBOT_POSE.updatePose(MAZE)
+    rotationErrorHelper()
 ########################## Motion logic ######################## 
 
 
@@ -558,6 +628,7 @@ def traverse():
             print("World completely mapped")
             print(f'Astar completion time: {robot.getTime():.2f}s')
         elif goal_found:
+            print(f'Number of nodes Mapped: {len(MAZE.graph)}')
             print(f'Goal found in: {robot.getTime():.2f}s')
 
         neighTiles(ROBOT_POSE.tile-1, ROBOT_POSE.theta)
