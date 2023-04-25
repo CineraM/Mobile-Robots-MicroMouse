@@ -122,6 +122,7 @@ pi = math.pi
 half_of_robot = 0.037*39.3701 
 toIn = 39.3701
 prev_l, prev_r = getPositionSensors()
+goal_found = False
 #########################################################
 # Robot and Maze classes
 class mazeMap:
@@ -455,6 +456,7 @@ def aStartNode(neigh, valid):
 # forward, left, right, backward
 # check if there are walls
 def neighTiles(tile, theta=90):
+    global goal_found
     grid = MAZE.grid 
     valid_neigh = []
     n = MAZE.n
@@ -518,7 +520,7 @@ def neighTiles(tile, theta=90):
 
     # return valid_neigh # dfs order, up, left, right, down
     MAZE.graph[cur_node] = cur_node_neigh
-    if True not in valid_neigh:
+    if True not in valid_neigh or goal_found:
         return valid_neigh # if not valid neigh, backtrack
     else:
         return aStartNode(cur_node_neigh, valid_neigh)
@@ -602,9 +604,9 @@ graph_file_path = os.path.dirname(graph_file_path) + "/graph.json"
 target_visited_nodes = 256
 goal_tiles = [120, 121, 136, 137]
 def traverse():
+    global goal_found
     nodes_flag = False
     time_flag = False
-    goal_found = False
 
     ones = sum([i.count(1) for i in MAZE.grid])
 
@@ -620,16 +622,18 @@ def traverse():
     if ROBOT_POSE.tile in goal_tiles:
         goal_found = True
 
-    if nodes_flag or time_flag or goal_found: # all nodes found
+    if nodes_flag or time_flag: # all nodes found
         if time_flag:
+            print(f'Number of nodes Mapped: {len(MAZE.graph)}')
             print(f'Time Limit reached ({robot.getTime():.2f}s), saving graph')
             print(f'Saving current Astar graph...')
         elif nodes_flag:
             print("World completely mapped")
-            print(f'Astar completion time: {robot.getTime():.2f}s')
-        elif goal_found:
             print(f'Number of nodes Mapped: {len(MAZE.graph)}')
-            print(f'Goal found in: {robot.getTime():.2f}s')
+            print(f'Astar completion time: {robot.getTime():.2f}s')
+        # elif goal_found:
+        #     print(f'Number of nodes Mapped: {len(MAZE.graph)}')
+        #     print(f'Goal found in: {robot.getTime():.2f}s')
 
         neighTiles(ROBOT_POSE.tile-1, ROBOT_POSE.theta)
         setSpeedIPS(-2, 2)
