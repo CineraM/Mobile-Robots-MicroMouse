@@ -1,0 +1,47 @@
+
+Just map for 10 minutes, or until 220 nodes are discovered
+
+mapping: 
+    1st config:
+        tiles = 206
+        time = 600
+        score = 59.3
+    
+    shorter time
+    2nd config:
+        tiles = 132
+        time = 338
+        score = 44.6
+
+    3d config:
+        tiles = 241
+        time = 660
+        score = 66
+^^^^^^^^
+Use, 3d config with 252 nodes to explore
+with a time cap of 14 minutes
+stop the simulation whenever backtracking is not efficient.
+
+
+A faster circle speed may not increment the speed in a meaningful way
+fastest run:
+
+    worst config (but safe):
+        crm speed = 1.5
+        time = 312.29
+        score = 48.2
+
+    base config:
+        crm speed = 2.0
+        time = 259.1
+        score = 57
+
+    1st config:
+        crm speed = 2.5
+        time = 225.7
+        score = 62.3
+
+    2nd config:
+        crm speed = 2.7
+        time = 217.7
+        score = 63.8

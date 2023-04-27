@@ -601,8 +601,8 @@ def spin():
 # the neighbors are found locally, and are not stored in a DS
 graph_file_path = os.getcwd()
 graph_file_path = os.path.dirname(graph_file_path) + "/graph.json" 
-target_visited_nodes = 220 # 220, may be a better goal
-target_time = 600 # 600 def
+target_visited_nodes = 250 # 220, may be a better goal
+target_time = 660 # 600 def
 goal_tiles = [120, 121, 136, 137]
 def traverse():
     global goal_found
@@ -625,12 +625,12 @@ def traverse():
 
     if nodes_flag or time_flag: # all nodes found
         if time_flag:
-            print(f'Number of nodes Mapped: {len(MAZE.graph)}')
+            print(f'Number of nodes Mapped: {len(MAZE.graph)+1}')
             print(f'Time Limit reached ({robot.getTime():.2f}s), saving graph')
             print(f'Saving current Astar graph...')
         elif nodes_flag:
             print("World completely mapped")
-            print(f'Number of nodes Mapped: {len(MAZE.graph)}')
+            print(f'Number of nodes Mapped: {len(MAZE.graph)+1}')
             print(f'Astar completion time: {robot.getTime():.2f}s')
         # elif goal_found:
         #     print(f'Number of nodes Mapped: {len(MAZE.graph)}')

@@ -737,7 +737,7 @@ def runMotions(motions):
     distance = 7.08661
     print("Running motions...")
 
-    circleV = 2.5 # 2.2 == DEFAULT
+    circleV = 2.0 # 2.2 == DEFAULT
     # 2.2, 2.5, 2.0, 3.0 --> if there are many curves
     for m in motions:
         motion = m[1]
