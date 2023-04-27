@@ -386,13 +386,13 @@ def rotationInPlace(direction, degree, v):
         east_flag = True if end_heading <= 4 or end_heading >= 356 else False
         if (robot.getTime() - t_start) >= T:
 
-            # if east_flag:
-            #     current_heading = current_heading - 360 if current_heading > 355 else current_heading
-            # if current_heading > (end_heading+marg_error):
-            #     setSpeedIPS(.01, -.01)
-            # elif current_heading < (end_heading-marg_error):
-            #     setSpeedIPS(-.01, .01)
-            # else:
+            if east_flag:
+                current_heading = current_heading - 360 if current_heading > 355 else current_heading
+            if current_heading > (end_heading+marg_error):
+                setSpeedIPS(.01, -.01)
+            elif current_heading < (end_heading-marg_error):
+                setSpeedIPS(-.01, .01)
+            else:
                 setSpeedIPS(0,0)
                 break
 
@@ -601,7 +601,8 @@ def spin():
 # the neighbors are found locally, and are not stored in a DS
 graph_file_path = os.getcwd()
 graph_file_path = os.path.dirname(graph_file_path) + "/graph.json" 
-target_visited_nodes = 256
+target_visited_nodes = 220 # 220, may be a better goal
+target_time = 600 # 600 def
 goal_tiles = [120, 121, 136, 137]
 def traverse():
     global goal_found
@@ -616,7 +617,7 @@ def traverse():
     if len(stack) == 0 and ones>1: # all nodes are not discoverable
         nodes_flag = True
 
-    if robot.getTime() > 600: # 10 minutes
+    if robot.getTime() > target_time and goal_found: # 10 minutes, only stop the simulation if the goal was found
         time_flag = True
 
     if ROBOT_POSE.tile in goal_tiles:
