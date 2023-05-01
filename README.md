@@ -1,4 +1,4 @@
-# Mobile-Robots-MicroMouse - Custom MicroMouse implementation  
+# Mobile Robots MicroMouse - Custom MicroMouse implementation  
 
 Webots (E-puck): Python implementation of MicroMouse. Assuming the epuck always starts at the bottom left corner. 
 
